@@ -34,7 +34,7 @@ We do **not** wrap in `{ data: ... }` unless needed later.
 
 ### Error format (consistent everywhere)
 
-All errors return:
+**Target shape** (requires a custom exception filter — tracked in Milestone 8):
 
 ```json
 {
@@ -43,6 +43,16 @@ All errors return:
     "message": "Human readable message",
     "details": {}
   }
+}
+```
+
+**Current NestJS native shape** (what the API returns today):
+
+```json
+{
+  "statusCode": 403,
+  "message": "Forbidden",
+  "error": "Forbidden"
 }
 ```
 
@@ -56,7 +66,7 @@ Common HTTP statuses:
 - 429 `RATE_LIMITED` (optional later)
 - 500 `INTERNAL_ERROR`
 
-Example validation error:
+Example validation error (target):
 
 ```json
 {
@@ -131,7 +141,7 @@ If using cookies later, this clears the cookie.
 
 Response 204 (no body)
 
-### GET /me
+### GET /auth/me
 
 Returns current user.
 
@@ -170,22 +180,14 @@ Response 201:
 
 ```json
 {
-  "tenant": {
-    "id": "uuid",
-    "slug": "investio",
-    "name": "Investio",
-    "created_at": "iso"
-  },
-  "membership": {
-    "id": "uuid",
-    "tenant_id": "uuid",
-    "user_id": "uuid",
-    "role": "owner",
-    "status": "active",
-    "joined_at": "iso"
-  }
+  "id": "uuid",
+  "slug": "investio",
+  "name": "Investio",
+  "createdAt": "iso"
 }
 ```
+
+> **Known gap:** Response currently returns only the `Tenant` object. The `membership` (role: owner) is created server-side but not returned. Frontend must call `GET /tenants/{tenantId}/members` to confirm membership. Returning `{ tenant, membership }` is tracked as a Milestone 2 improvement.
 
 Errors:
 
@@ -484,7 +486,7 @@ Response 200:
 
 ## 6) AI Coach v0 (weekly recap)
 
-### GET /ai/reports/latest (tenant-scoped)
+### GET /ai/report (tenant-scoped)
 
 Returns the most recent report for the current user.
 
@@ -515,21 +517,28 @@ Errors:
 
 - 404 `REPORT_NOT_FOUND` (if none yet)
 
-### POST /ai/reports/generate (tenant-scoped)
+### POST /ai/report (tenant-scoped)
 
-Triggers generation (async). MVP can return 202 and let worker do it.
+Triggers generation. MVP runs synchronously; future: 202 + async worker.
 
-Response 202:
+Response 201:
 
 ```json
-{ "status": "queued" }
+{
+  "report": {
+    "id": "uuid",
+    "tenant_id": "uuid",
+    "user_id": "uuid",
+    "created_at": "iso"
+  }
+}
 ```
 
 ---
 
 ## 7) Notes for implementation (non-binding)
 
-Swagger will be generated from ASP.NET Core controllers + DTOs as we implement endpoints.
+Swagger is auto-generated from NestJS controllers + DTOs via `@nestjs/swagger`. Available at `GET /docs`.
 
 Frontend should treat 401 as "redirect to login" and 403 as "show not allowed".
 

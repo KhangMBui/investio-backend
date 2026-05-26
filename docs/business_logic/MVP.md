@@ -52,9 +52,9 @@ The MVP follows a **modular monolith** architecture with clear boundaries and as
 **Core components:**
 
 - **Next.js Web (UI + SSR)** for frontend
-- **ASP.NET Core API services** running on ECS Fargate
+- **NestJS modular monolith** running on ECS Fargate
 - **Worker service** (ECS Fargate) for async jobs
-- **RDS Postgres**, **Redis**, **S3**
+- **RDS Postgres**, **S3**
 - **EventBridge + SQS** for async messaging
 
 ---

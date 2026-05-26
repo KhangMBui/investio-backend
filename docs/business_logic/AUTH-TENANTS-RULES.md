@@ -21,9 +21,10 @@
 
 ### Token claims (minimum)
 
-- `sub`: user_id (uuid)
+- `id`: user_id (uuid) — NestJS implementation uses `id`, not the JWT standard `sub`
+- `role`: platform role (`user` | `admin`)
+- `sessionId`: server-side session UUID (enables server-side revocation)
 - `exp`: expiry
-- `iss` / `aud`: issuer + audience (optional but recommended)
 - Do **not** store secrets/PII in token payload.
 
 ### Auth states

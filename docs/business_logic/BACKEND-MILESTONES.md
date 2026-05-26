@@ -124,6 +124,7 @@ Make multi-tenancy reliable and enforce tenant boundaries everywhere.
 - [x] Verify missing tenant header returns correct error
 - [x] Verify inactive/banned members cannot access tenant data (`TenantMemberGuard` checks `status === active`)
 - [x] Verify tenant role guard works for mod/owner routes (`TenantRoleGuard` + `@TenantRoles()`)
+- [ ] Verify `PATCH /tenants/:tenantId/members/:userId` endpoint (update role/status — owner/mod only)
 - [ ] ~~Add or confirm "last owner cannot be removed" rule~~ — deferred post-MVP
 
 ## Acceptance Criteria
@@ -151,6 +152,8 @@ Ship the main product loop: create, view, edit, and resolve investment ideas.
 - [x] Verify update writes idea edit audit rows (field-level diff, stored in `idea_edits`)
 - [x] Verify resolve idea endpoint (`status → resolved`, sets `resolvedAt`)
 - [ ] Add invalidate idea endpoint: `POST /ideas/:ideaId/invalidate` (`status → invalidated`)
+- [ ] Enforce edit permissions: members can only edit their own ideas; mod/owner can edit any
+- [ ] Enforce resolve/invalidate permissions: mod/owner only (gate behind `TenantRoleGuard`)
 - [ ] Add filtering on `GET /ideas`:
   - by `status`
   - by `ticker`
@@ -159,8 +162,9 @@ Ship the main product loop: create, view, edit, and resolve investment ideas.
 
 ## Acceptance Criteria
 
-- Tenant member can create ideas
-- Any active tenant member can edit or resolve ideas (MVP — authorship/role restrictions deferred)
+- Tenant member can create, view, and comment on ideas
+- Any active tenant member can edit their own ideas; mod/owner can edit any idea
+- Only mod/owner can resolve or invalidate ideas
 - Every field change creates an audit trail row in `idea_edits`
 - Ideas from one tenant never appear in another tenant
 - Invalidated ideas are correctly marked and distinguishable from resolved
@@ -293,6 +297,8 @@ Make the backend comfortable for frontend integration.
   - `ticker`
   - `limit`
   - `cursor` / `page`
+- [ ] Add custom exception filter to normalize error responses to API contract envelope:
+  `{ error: { code, message, details } }` instead of NestJS native `{ statusCode, message, error }`
 - [x] CORS enabled for local dev (`cors: true` in `main.ts`)
 - [ ] Review CORS origin config for staging/production
 
