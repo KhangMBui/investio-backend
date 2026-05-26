@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { EntityRelationalHelper } from '../../../../../utils/relational-entity-helper';
+import { UserPlatformRole } from '../../../../user-platform-role.enum';
 
 @Entity({ name: 'user' })
 export class UserEntity extends EntityRelationalHelper {
@@ -18,6 +19,13 @@ export class UserEntity extends EntityRelationalHelper {
 
   @Column({ nullable: true })
   password?: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserPlatformRole,
+    default: UserPlatformRole.USER,
+  })
+  role: UserPlatformRole;
 
   @CreateDateColumn()
   createdAt: Date;

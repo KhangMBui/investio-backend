@@ -1,7 +1,6 @@
 import {
   HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -24,6 +23,7 @@ import { MailService } from '../mail/mail.service';
 import { Session } from '../session/domain/session';
 import { SessionService } from '../session/session.service';
 import { User } from '../users/domain/user';
+import { UserPlatformRole } from '../users/user-platform-role.enum';
 
 @Injectable()
 export class AuthService {
@@ -73,6 +73,7 @@ export class AuthService {
 
     const { token, refreshToken, tokenExpires } = await this.getTokensData({
       id: user.id,
+      role: user.role ?? UserPlatformRole.USER,
       sessionId: session.id,
       hash,
     });
@@ -95,6 +96,7 @@ export class AuthService {
 
     const { token, refreshToken, tokenExpires } = await this.getTokensData({
       id: user.id,
+      role: user.role ?? UserPlatformRole.USER,
       sessionId: session.id,
       hash,
     });
@@ -278,6 +280,7 @@ export class AuthService {
 
     const { token, refreshToken, tokenExpires } = await this.getTokensData({
       id: session.user.id,
+      role: user.role ?? UserPlatformRole.USER,
       sessionId: session.id,
       hash,
     });
@@ -295,6 +298,7 @@ export class AuthService {
 
   private async getTokensData(data: {
     id: User['id'];
+    role: UserPlatformRole;
     sessionId: Session['id'];
     hash: Session['hash'];
   }) {
@@ -306,7 +310,7 @@ export class AuthService {
 
     const [token, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { id: data.id, sessionId: data.sessionId },
+        { id: data.id, role: data.role, sessionId: data.sessionId },
         {
           secret: this.configService.getOrThrow('auth.secret', { infer: true }),
           expiresIn: tokenExpiresIn,

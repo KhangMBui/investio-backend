@@ -31,9 +31,15 @@ import { QueryUserDto } from './dto/query-user.dto';
 import { User } from './domain/user';
 import { UsersService } from './users.service';
 import { infinityPagination } from '../utils/infinity-pagination';
+import {
+  PlatformRoleGuard,
+  PlatformRoles,
+} from '../common/guards/platform-role.guard';
+import { UserPlatformRole } from './user-platform-role.enum';
 
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), PlatformRoleGuard)
+@PlatformRoles(UserPlatformRole.ADMIN)
 @ApiTags('Users')
 @Controller({
   path: 'users',

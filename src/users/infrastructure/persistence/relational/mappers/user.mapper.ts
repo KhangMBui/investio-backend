@@ -1,4 +1,5 @@
 import { User } from '../../../../domain/user';
+import { UserPlatformRole } from '../../../../user-platform-role.enum';
 import { UserEntity } from '../entities/user.entity';
 
 export class UserMapper {
@@ -7,6 +8,7 @@ export class UserMapper {
     domainEntity.id = raw.id;
     domainEntity.email = raw.email;
     domainEntity.password = raw.password;
+    domainEntity.role = raw.role;
     domainEntity.createdAt = raw.createdAt;
     domainEntity.updatedAt = raw.updatedAt;
     domainEntity.deletedAt = raw.deletedAt;
@@ -20,6 +22,7 @@ export class UserMapper {
     }
     persistenceEntity.email = domainEntity.email;
     persistenceEntity.password = domainEntity.password;
+    persistenceEntity.role = domainEntity.role ?? UserPlatformRole.USER;
     persistenceEntity.createdAt = domainEntity.createdAt;
     persistenceEntity.updatedAt = domainEntity.updatedAt;
     persistenceEntity.deletedAt = domainEntity.deletedAt;

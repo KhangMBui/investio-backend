@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import bcrypt from 'bcryptjs';
 import { UserEntity } from '../../../../users/infrastructure/persistence/relational/entities/user.entity';
+import { UserPlatformRole } from '../../../../users/user-platform-role.enum';
 
 @Injectable()
 export class UserSeedService {
@@ -12,20 +13,35 @@ export class UserSeedService {
   ) {}
 
   async run() {
-    const count = await this.repository.count({
-      where: { email: 'admin@example.com' },
-    });
+    const users = [
+      {
+        email: 'admin@investio.com',
+        password: 'admin123',
+        role: UserPlatformRole.ADMIN,
+      },
+      {
+        email: 'test@investio.com',
+        password: 'test123',
+        role: UserPlatformRole.USER,
+      },
+    ];
 
-    if (!count) {
-      const salt = await bcrypt.genSalt();
-      const password = await bcrypt.hash('secret', salt);
+    for (const { email, password, role } of users) {
+      const exists = await this.repository.count({
+        where: { email },
+      });
 
-      await this.repository.save(
-        this.repository.create({
-          email: 'admin@example.com',
-          password,
-        }),
-      );
+      if (!exists) {
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(password, salt);
+        await this.repository.save(
+          this.repository.create({
+            email,
+            password: hashedPassword,
+            role,
+          }),
+        );
+      }
     }
   }
 }
