@@ -1,0 +1,108 @@
+import { describe, expect, it, beforeAll } from '@jest/globals';
+import { APP_URL, ADMIN_EMAIL, ADMIN_PASSWORD } from '../utils/constants';
+import request from 'supertest';
+
+describe('Users Module', () => {
+  const app = APP_URL;
+  let apiToken: string;
+
+  beforeAll(async () => {
+    await request(app)
+      .post('/api/v1/auth/email/login')
+      .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+      .then(({ body }) => {
+        apiToken = body.token;
+      });
+  });
+
+  describe('Update', () => {
+    let newUser: { id: string };
+    const newUserEmail = `user-first.${Date.now()}@example.com`;
+    const newUserChangedEmail = `user-first-changed.${Date.now()}@example.com`;
+    const newUserPassword = `secret`;
+    const newUserChangedPassword = `new-secret`;
+
+    beforeAll(async () => {
+      await request(app).post('/api/v1/auth/email/register').send({
+        email: newUserEmail,
+        password: newUserPassword,
+      });
+
+      await request(app)
+        .post('/api/v1/auth/email/login')
+        .send({ email: newUserEmail, password: newUserPassword })
+        .then(({ body }) => {
+          newUser = body.user;
+        });
+    });
+
+    it('should change password for existing user: /api/v1/users/:id (PATCH)', () => {
+      return request(app)
+        .patch(`/api/v1/users/${newUser.id}`)
+        .auth(apiToken, { type: 'bearer' })
+        .send({
+          email: newUserChangedEmail,
+          password: newUserChangedPassword,
+        })
+        .expect(200);
+    });
+
+    it('should login with changed password: /api/v1/auth/email/login (POST)', () => {
+      return request(app)
+        .post('/api/v1/auth/email/login')
+        .send({ email: newUserChangedEmail, password: newUserChangedPassword })
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.token).toBeDefined();
+        });
+    });
+  });
+
+  describe('Create', () => {
+    const newUserByAdminEmail = `user-created-by-admin.${Date.now()}@example.com`;
+    const newUserByAdminPassword = `secret`;
+
+    it('should fail to create new user with invalid email: /api/v1/users (POST)', () => {
+      return request(app)
+        .post(`/api/v1/users`)
+        .auth(apiToken, { type: 'bearer' })
+        .send({ email: 'fail-data' })
+        .expect(422);
+    });
+
+    it('should successfully create new user: /api/v1/users (POST)', () => {
+      return request(app)
+        .post(`/api/v1/users`)
+        .auth(apiToken, { type: 'bearer' })
+        .send({
+          email: newUserByAdminEmail,
+          password: newUserByAdminPassword,
+        })
+        .expect(201);
+    });
+
+    it('should login via user created by admin: /api/v1/auth/email/login (POST)', () => {
+      return request(app)
+        .post('/api/v1/auth/email/login')
+        .send({ email: newUserByAdminEmail, password: newUserByAdminPassword })
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.token).toBeDefined();
+        });
+    });
+  });
+
+  describe('Get many', () => {
+    it('should get list of users: /api/v1/users (GET)', () => {
+      return request(app)
+        .get(`/api/v1/users`)
+        .auth(apiToken, { type: 'bearer' })
+        .send()
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.data[0].email).toBeDefined();
+          expect(body.data[0].password).not.toBeDefined();
+        });
+    });
+  });
+});
