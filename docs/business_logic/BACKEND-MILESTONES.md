@@ -47,16 +47,16 @@ Make sure the backend can run, migrate, build, and expose correct docs before fe
 
 ## Tasks
 
-- [ ] Run local dependencies with Docker Compose
-- [ ] Verify Postgres connection
-- [ ] Verify MailDev or mail service starts locally
-- [ ] Run database migrations from scratch
-- [ ] Run seed scripts if available
-- [ ] Start NestJS app locally
-- [ ] Open Swagger at `/docs`
-- [ ] Confirm API prefix is `/api/v1`
-- [ ] Run `npm run build`
-- [ ] Run tests / e2e tests if available
+- [x] Run local dependencies with Docker Compose
+- [x] Verify Postgres connection
+- [x] Verify MailDev or mail service starts locally
+- [x] Run database migrations from scratch
+- [x] Run seed scripts if available
+- [x] Start NestJS app locally
+- [x] Open Swagger at `/docs`
+- [x] Confirm routes are at `/api/v1/...` — `API_PREFIX=api` in `.env`, URI versioning adds `/v1` from each controller's `version: '1'`
+- [x] Run `yarn build`
+- [x] Run `yarn test:e2e` — requires app running (`yarn start:dev`) in a separate terminal; no unit tests exist in `src/` yet
 
 ## Acceptance Criteria
 
