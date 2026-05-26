@@ -7,13 +7,7 @@ description: Add entities/schemas and properties to existing entities via this p
 
 ## Detect the database variant
 
-Before running any command, grep `package.json` `scripts` to determine `{db}`:
-
-- `generate:resource:all-db` present → `{db}` = `all-db` (PostgreSQL + MongoDB).
-- `generate:resource:relational` present (and no `all-db`) → `{db}` = `relational` (PostgreSQL/TypeORM).
-- `generate:resource:document` present (and no `all-db`) → `{db}` = `document` (MongoDB).
-
-Do not ask the user — whichever `generate:resource:*` and `add:property:to-*` scripts remain in `package.json` are exactly the right ones to run.
+**This project uses PostgreSQL/TypeORM only.** Always use `{db}` = `relational`, regardless of which scripts exist in `package.json`. The `all-db` and `document` scripts are present but unused — do not run them.
 
 ## Add an entity/schema
 
@@ -69,3 +63,62 @@ npm run add:property:to-{db} -- --name {EntityName} --property {propertyName} --
 **Omit arguments that don't apply** (e.g., omit `--referenceType` for primitive properties, omit `--propertyInReference` unless `referenceType` is `oneToMany`).
 
 Run sequentially, one property at a time.
+
+---
+
+## Post-generation: wire tenant context (tenant-scoped resources only)
+
+The generator produces a minimal controller and module. For any resource that belongs to a tenant (ideas, comments, AI reports, etc.), apply these manual changes after generation:
+
+### Controller
+
+Replace the generated guard and add the tenant header and decorators:
+
+```typescript
+// Replace:
+@UseGuards(AuthGuard('jwt'))
+
+// With:
+@ApiHeader({ name: 'x-tenant-id', required: true })
+@UseGuards(AuthGuard('jwt'), TenantContextGuard, TenantMemberGuard)
+```
+
+Add imports:
+```typescript
+import { TenantContextGuard } from '../tenant/guards/tenant-context.guard';
+import { TenantMemberGuard } from '../tenant/guards/tenant-member.guard';
+import { TenantContext } from '../common/decorators/tenant-context.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { JwtPayloadType } from '../auth/strategies/types/jwt-payload.type';
+```
+
+Add `@TenantContext() tenantId: string` and `@CurrentUser() user: JwtPayloadType` parameters to handler methods that need them.
+
+### Module
+
+Import `MembershipsModule` so `TenantMemberGuard` can inject `MembershipsService`:
+
+```typescript
+import { MembershipsModule } from '../tenant/memberships/memberships.module';
+
+@Module({
+  imports: [
+    RelationalExamplePersistenceModule,
+    MembershipsModule,   // add this
+  ],
+  ...
+})
+```
+
+### Entity
+
+Add `tenantId` as a plain string column (not a FK — Investio denormalizes it):
+
+```typescript
+@Column({ type: String })
+tenantId: string;
+```
+
+### Service
+
+Prefix all tenant-scoped methods with `tenantId: string` as the first argument and filter all queries by it.
