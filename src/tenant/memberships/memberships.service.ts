@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UpdateMembershipDto } from './dto/update-membership.dto';
 import { MembershipEntity } from './infrastructure/persistence/relational/entities/membership.entity';
 import { MembershipMapper } from './infrastructure/persistence/relational/mappers/membership.mapper';
 import { Membership } from './domain/membership';
@@ -28,6 +29,11 @@ export class MembershipsService {
     return entities.map(MembershipMapper.toDomain);
   }
 
+  async findByUser(userId: string): Promise<Membership[]> {
+    const entities = await this.repo.find({ where: { userId } });
+    return entities.map(MembershipMapper.toDomain);
+  }
+
   async create(data: {
     tenantId: string;
     userId: string;
@@ -40,6 +46,21 @@ export class MembershipsService {
       role: data.role,
       status: data.status ?? MembershipStatus.active,
     });
+    const saved = await this.repo.save(entity);
+    return MembershipMapper.toDomain(saved);
+  }
+
+  async update(
+    tenantId: string,
+    userId: string,
+    dto: UpdateMembershipDto,
+  ): Promise<Membership> {
+    const entity = await this.repo.findOne({ where: { tenantId, userId } });
+    if (!entity) throw new NotFoundException();
+
+    if (dto.role !== undefined) entity.role = dto.role;
+    if (dto.status !== undefined) entity.status = dto.status;
+
     const saved = await this.repo.save(entity);
     return MembershipMapper.toDomain(saved);
   }

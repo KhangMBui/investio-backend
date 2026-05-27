@@ -93,8 +93,8 @@ Make auth safe enough for MVP and prevent normal users from accessing platform/a
   - `GET /users/:id`
   - `PATCH /users/:id`
   - `DELETE /users/:id`
-- [ ] Manual smoke test: confirm normal user receives `403` on `/users` endpoints
-- [ ] Manual smoke test: confirm admin user can access `/users` endpoints
+- [x] Manual smoke test: confirm normal user receives `403` on `/users` endpoints
+- [x] Manual smoke test: confirm admin user can access `/users` endpoints
 
 ## Acceptance Criteria
 
@@ -115,8 +115,8 @@ Make multi-tenancy reliable and enforce tenant boundaries everywhere.
 ## Tasks
 
 - [x] Verify tenant creation: creator automatically becomes owner (membership created with `role: owner`)
-- [ ] Scope `GET /tenants` to return only tenants the current user is a member of — currently returns ALL tenants to any authenticated user (security gap)
-- [ ] Verify tenant listing shows correct tenants for current user after scoping fix
+- [x] Scope `GET /tenants` to return only tenants the current user is a member of — currently returns ALL tenants to any authenticated user (security gap)
+- [x] Verify tenant listing shows correct tenants for current user after scoping fix
 - [x] Verify member listing (`GET /tenants/:tenantId/members`)
 - [x] Verify membership role enum: `owner` | `mod` | `member`
 - [x] Verify membership status enum: `active` | `invited` | `banned`
@@ -124,7 +124,7 @@ Make multi-tenancy reliable and enforce tenant boundaries everywhere.
 - [x] Verify missing tenant header returns correct error
 - [x] Verify inactive/banned members cannot access tenant data (`TenantMemberGuard` checks `status === active`)
 - [x] Verify tenant role guard works for mod/owner routes (`TenantRoleGuard` + `@TenantRoles()`)
-- [ ] Verify `PATCH /tenants/:tenantId/members/:userId` endpoint (update role/status — owner/mod only)
+- [x] Verify `PATCH /tenants/:tenantId/members/:userId` endpoint (update role/status — owner/mod only)
 - [ ] ~~Add or confirm "last owner cannot be removed" rule~~ — deferred post-MVP
 
 ## Acceptance Criteria
@@ -298,7 +298,7 @@ Make the backend comfortable for frontend integration.
   - `limit`
   - `cursor` / `page`
 - [ ] Add custom exception filter to normalize error responses to API contract envelope:
-  `{ error: { code, message, details } }` instead of NestJS native `{ statusCode, message, error }`
+      `{ error: { code, message, details } }` instead of NestJS native `{ statusCode, message, error }`
 - [x] CORS enabled for local dev (`cors: true` in `main.ts`)
 - [ ] Review CORS origin config for staging/production
 
