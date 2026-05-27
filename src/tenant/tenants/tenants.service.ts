@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { TenantEntity } from './infrastructure/persistence/relational/entities/tenant.entity';
 import { TenantMapper } from './infrastructure/persistence/relational/mappers/tenant.mapper';
 import { Tenant } from './domain/tenant';
@@ -45,6 +45,15 @@ export class TenantsService {
 
   async findAll(): Promise<Tenant[]> {
     const entities = await this.repo.find({ order: { createdAt: 'DESC' } });
+    return entities.map(TenantMapper.toDomain);
+  }
+
+  async findByIds(ids: string[]): Promise<Tenant[]> {
+    if (ids.length === 0) return [];
+    const entities = await this.repo.find({
+      where: { id: In(ids) },
+      order: { createdAt: 'DESC' },
+    });
     return entities.map(TenantMapper.toDomain);
   }
 
