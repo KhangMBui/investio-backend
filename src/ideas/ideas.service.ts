@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { IdeaEntity } from './infrastructure/persistence/relational/entities/idea.entity';
 import { IdeaEditEntity } from './idea-edits/infrastructure/persistence/relational/entities/idea-edit.entity';
 import { Idea } from './domain/idea';
@@ -8,6 +12,10 @@ import { IdeaEdit } from './idea-edits/domain/idea-edit';
 import { CreateIdeaDto } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
 import { IdeaStatus } from './idea-status.enum';
+import { MembershipRole } from '../tenant/memberships/membership-role.enum';
+import { QueryIdeaDto } from './dto/query-idea.dto';
+import { infinityPagination } from '../utils/infinity-pagination';
+import { InfinityPaginationResponseDto } from '../utils/dto/infinity-pagination-response.dto';
 
 @Injectable()
 export class IdeasService {
@@ -37,12 +45,27 @@ export class IdeasService {
     return this.toIdea(saved);
   }
 
-  async findAll(tenantId: string): Promise<Idea[]> {
+  async findAll(
+    tenantId: string,
+    query: QueryIdeaDto,
+  ): Promise<InfinityPaginationResponseDto<Idea>> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
+    const where: FindOptionsWhere<IdeaEntity> = { tenantId };
+    if (query.status) where.status = query.status;
+    if (query.ticker) where.ticker = query.ticker;
+
     const entities = await this.ideaRepo.find({
-      where: { tenantId },
+      where,
       order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return entities.map((e) => this.toIdea(e));
+    return infinityPagination(
+      entities.map((e) => this.toIdea(e)),
+      { page, limit },
+    );
   }
 
   async findByIdOrFail(tenantId: string, id: string): Promise<Idea> {
@@ -55,10 +78,18 @@ export class IdeasService {
     tenantId: string,
     id: string,
     editorUserId: string,
+    callerRole: MembershipRole,
     dto: UpdateIdeaDto,
   ): Promise<Idea> {
     const entity = await this.ideaRepo.findOne({ where: { tenantId, id } });
     if (!entity) throw new NotFoundException('Idea not found');
+
+    const canEdit =
+      entity.authorUserId === editorUserId ||
+      callerRole === MembershipRole.mod ||
+      callerRole === MembershipRole.owner;
+
+    if (!canEdit) throw new ForbiddenException();
 
     const editableFields = [
       'ticker',
@@ -90,10 +121,14 @@ export class IdeasService {
     return this.toIdea(saved);
   }
 
-  async resolve(tenantId: string, id: string): Promise<Idea> {
+  async resolveOrInvalidate(
+    tenantId: string,
+    id: string,
+    status: IdeaStatus.resolved | IdeaStatus.invalidated,
+  ): Promise<Idea> {
     const entity = await this.ideaRepo.findOne({ where: { tenantId, id } });
     if (!entity) throw new NotFoundException('Idea not found');
-    entity.status = IdeaStatus.resolved;
+    entity.status = status;
     entity.resolvedAt = new Date();
     const saved = await this.ideaRepo.save(entity);
     return this.toIdea(saved);

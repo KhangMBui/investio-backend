@@ -151,13 +151,13 @@ Ship the main product loop: create, view, edit, and resolve investment ideas.
 - [x] Verify update idea endpoint
 - [x] Verify update writes idea edit audit rows (field-level diff, stored in `idea_edits`)
 - [x] Verify resolve idea endpoint (`status → resolved`, sets `resolvedAt`)
-- [ ] Add invalidate idea endpoint: `POST /ideas/:ideaId/invalidate` (`status → invalidated`)
-- [ ] Enforce edit permissions: members can only edit their own ideas; mod/owner can edit any
-- [ ] Enforce resolve/invalidate permissions: mod/owner only (gate behind `TenantRoleGuard`)
-- [ ] Add filtering on `GET /ideas`:
+- [x] Add invalidate idea endpoint: `POST /ideas/:ideaId/invalidate` (`status → invalidated`)
+- [x] Enforce edit permissions: members can only edit their own ideas; mod/owner can edit any
+- [x] Enforce resolve/invalidate permissions: mod/owner only (gate behind `TenantRoleGuard`)
+- [x] Add filtering on `GET /ideas`:
   - by `status`
   - by `ticker`
-- [ ] Add pagination for ideas
+- [x] Add pagination for ideas
 - [x] Confirm all idea queries are tenant-scoped (`where: { tenantId }`)
 
 ## Acceptance Criteria
