@@ -31,7 +31,10 @@ import { JobsModule } from './jobs/jobs.module';
     }),
     TypeOrmModule.forRootAsync({
       useClass: TypeOrmConfigService,
-      dataSourceFactory: async (options: DataSourceOptions) => {
+      dataSourceFactory: async (options?: DataSourceOptions) => {
+        if (!options) {
+          throw new Error('TypeORM options are undefined');
+        }
         return new DataSource(options).initialize();
       },
     }),

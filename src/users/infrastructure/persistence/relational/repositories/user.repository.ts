@@ -25,7 +25,6 @@ export class UsersRelationalRepository implements UserRepository {
   }
 
   async findManyWithPagination({
-    filterOptions: _filterOptions,
     sortOptions,
     paginationOptions,
   }: {

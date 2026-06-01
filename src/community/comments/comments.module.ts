@@ -4,9 +4,13 @@ import { CommentEntity } from './infrastructure/persistence/relational/entities/
 import { CommentsService } from './comments.service';
 import { CommentsController } from './comments.controller';
 import { MembershipsModule } from '../../tenant/memberships/memberships.module';
+import { IdeaEntity } from '../../ideas/infrastructure/persistence/relational/entities/idea.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CommentEntity]), MembershipsModule],
+  imports: [
+    TypeOrmModule.forFeature([CommentEntity, IdeaEntity]),
+    MembershipsModule,
+  ],
   controllers: [CommentsController],
   providers: [CommentsService],
   exports: [CommentsService],

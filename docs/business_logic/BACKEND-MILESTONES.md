@@ -181,8 +181,8 @@ Enable discussion around ideas.
 
 - [x] Verify create comment endpoint (`POST /ideas/:ideaId/comments`)
 - [x] Verify list comments endpoint (`GET /ideas/:ideaId/comments`)
-- [ ] Add pagination for comments
-- [ ] Add delete comment endpoint (author or mod/owner only) — add only if needed before launch
+- [x] Add pagination for comments
+- [x] Add delete comment endpoint (author or mod/owner only) — add only if needed before launch
 - [x] Confirm comments are tenant-scoped (filtered by `tenantId` + `ideaId`)
 
 ## Acceptance Criteria
